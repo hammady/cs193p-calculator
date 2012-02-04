@@ -143,20 +143,26 @@
 }
 
 - (IBAction)backspacePressed {
-    if (self.editingNumber)
+    if (self.editingNumber) // undo typing last digit/decimal point
     {
         NSUInteger displayLength = self.display.text.length;
         if (displayLength == 1)
         {
-            self.display.text = @"0";
             self.editingNumber = NO;
         } else {
             NSString* lastDigit = [self.display.text substringFromIndex:displayLength - 1];
             self.display.text = [self.display.text substringToIndex:displayLength - 1];
             if ([lastDigit isEqualToString:@"."])
                 self.typedPoint = NO;
+            return;
         }
+    } else {    // undo last action on program
+        [self.model undoLastAction];
     }
+    double result = [CalculatorModel runProgram:self.model.program usingVariablesStore:self.variablesStore];
+    self.display.text = [NSString stringWithFormat:@"%g", result];
+    [self updateProgramDisplay];
+    self.programDescription.text = [self.programDescription.text stringByAppendingString:@"="];
 }
 
 - (IBAction)storePressed {

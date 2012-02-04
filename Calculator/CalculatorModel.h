@@ -15,6 +15,7 @@
 -(void) clear;
 -(void) pushVariable:(NSString*)variable;
 -(void) pushOperator:(NSString*)operation;
+-(void) undoLastAction;
 
 @property (readonly) id program;
 

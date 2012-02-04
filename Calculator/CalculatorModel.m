@@ -282,4 +282,8 @@
     return [set copy];
 }
 
+-(void) undoLastAction
+{
+    [self.programStack removeLastObject];
+}
 @end
