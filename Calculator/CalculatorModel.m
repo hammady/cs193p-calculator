@@ -12,6 +12,7 @@
 @property (nonatomic, strong) NSMutableArray* programStack;
 +(double) popOperandOffStack:(NSMutableArray*)stack;
 +(NSString*) popOperandDescriptionOffStack:(NSMutableArray*)stack;
++(NSNumber*) getPrecedenceOfOperation:(id)operation;
 
 @end
 
@@ -23,6 +24,27 @@
 {
     if (_programStack == nil) _programStack = [[NSMutableArray alloc] init]; 
     return _programStack;
+}
+
++(NSNumber*) getPrecedenceOfOperation:(id)operation
+{
+    int precedence = 1;
+    
+    // TODO: HOW TO DO THE FOLLOWING STATIC? OR STORE ELSEWHERE
+    NSSet* fastOperations = [[NSSet alloc] initWithObjects:@"sin", @"cos", @"log", @"sqrt", @"*", @"/", @"+/-", nil];
+    NSSet* slowOperations = [[NSSet alloc] initWithObjects:@"+", @"-", nil];
+    
+    if ([operation isKindOfClass:[NSNumber class]]) // numeric operand
+        precedence = 1;
+    else  if ([operation isKindOfClass:[NSString class]]) {
+        if ([fastOperations containsObject:operation])
+            precedence = 1;
+        else if ([slowOperations containsObject:operation])
+            precedence = 2;
+        else    // variable or unknown operation
+            precedence = 1;
+    }
+    return [NSNumber numberWithInt:precedence];
 }
 
 +(double) popOperandOffStack:(NSMutableArray*)stack
@@ -108,10 +130,27 @@
             result = [[NSString alloc] initWithFormat:@"%@(%@)", operation, [self popOperandDescriptionOffStack:stack]];
         else if ([binaryOperations containsObject:operation])
         {
-            NSString* operand2 = [self popOperandDescriptionOffStack:stack];
-            NSString* operand1 = [self popOperandDescriptionOffStack:stack];
-            result = [[NSString alloc] initWithFormat:@"(%@%@%@)", 
-                      operand1, operation, operand2];
+            id operand2 = [stack lastObject];
+            NSString* operand2desc = [self popOperandDescriptionOffStack:stack];
+            id operand1 = [stack lastObject];
+            NSString* operand1desc = [self popOperandDescriptionOffStack:stack];
+            result = @"";
+            NSNumber* myPrecedence = [self getPrecedenceOfOperation:operation];
+            
+            // prepend operand1 enclosing it in parentheses if it has a lower precedence
+            if ([self getPrecedenceOfOperation:operand1] > myPrecedence)
+                result = [result stringByAppendingFormat:@"(%@)", operand1desc];
+            else
+                result = [result stringByAppendingString:operand1desc];
+            
+            // append this operator
+            result = [result stringByAppendingString:operation];
+            
+            // append operand2 enclosing it in parentheses if it has a lower precedence
+            if ([self getPrecedenceOfOperation:operand2] > myPrecedence)
+                result = [result stringByAppendingFormat:@"(%@)", operand2desc];
+            else
+                result = [result stringByAppendingString:operand2desc];
         }
         else if ([operation isEqualToString:@"+/-"])
             result = [[NSString alloc] initWithFormat:@"-[%@]", [self popOperandDescriptionOffStack:stack]];
