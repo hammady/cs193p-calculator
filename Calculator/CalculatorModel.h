@@ -11,7 +11,7 @@
 @interface CalculatorModel : NSObject
 
 -(void) pushOperand:(double)operand;
--(double) performOperation:(NSString*)operation;
+-(id) performOperation:(NSString*)operation;
 -(void) clear;
 -(void) pushVariable:(NSString*)variable;
 -(void) pushOperator:(NSString*)operation;
@@ -19,11 +19,11 @@
 
 @property (readonly) id program;
 
-+(double) runProgram:(id)program;
++(id) runProgram:(id)program;
 +(NSString*) getDescriptionOfProgram:(id)program;
 +(NSString*) getDescriptionOfProgramInfix:(id)program;
 
-+(double) runProgram:(id)program usingVariablesStore:(NSDictionary*)variablesStore;
++(id) runProgram:(id)program usingVariablesStore:(NSDictionary*)variablesStore;
 +(NSSet*) variablesUsedInProgram:(id)program;
 
 @end

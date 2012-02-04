@@ -10,7 +10,7 @@
 
 @interface CalculatorModel()
 @property (nonatomic, strong) NSMutableArray* programStack;
-+(double) popOperandOffStack:(NSMutableArray*)stack;
++(id) popOperandOffStack:(NSMutableArray*)stack;
 +(NSString*) popOperandDescriptionOffStack:(NSMutableArray*)stack;
 +(NSNumber*) getPrecedenceOfOperation:(id)operation;
 
@@ -47,47 +47,83 @@
     return [NSNumber numberWithInt:precedence];
 }
 
-+(double) popOperandOffStack:(NSMutableArray*)stack
++(id) popOperandOffStack:(NSMutableArray*)stack
 {
     double result = 0;
     
     id topOfStack = [stack lastObject];
-    if (topOfStack) [stack removeLastObject];
+    if (topOfStack)
+        [stack removeLastObject];
+    else
+        return nil; // needed because we need to explicitly discover operations with insufficient operands
     
     if ([topOfStack isKindOfClass:[NSNumber class]])
     {
-        result = [(NSNumber*) topOfStack doubleValue];
+        return topOfStack;
     }
     else if ([topOfStack isKindOfClass:[NSString class]])
     {
         NSString* operation = (NSString*) topOfStack;
         
+        // TODO: HOW TO DO THE FOLLOWING STATIC? OR STORE ELSEWHERE
+        NSSet* unaryOperations = [[NSSet alloc] initWithObjects:@"sin", @"cos", @"log", @"sqrt", @"+/-", nil];
+        NSSet* binaryOperations = [[NSSet alloc] initWithObjects:@"+", @"-", @"*", @"/", nil];
+        //NSSet* standaloneOperations = [[NSSet alloc] initWithObjects:@"e", @"pi", nil];
+        
+        // check availability of operands and pop them
+        id operand1, operand2;
+        double operand1double, operand2double;
+        if ([unaryOperations containsObject:operation] || [binaryOperations containsObject:operation]) {
+            operand1 = [self popOperandOffStack:stack];
+            if (!operand1) // insufficient operands
+                return [@"" stringByAppendingFormat:@"Insufficient operands for %@ ", operation];
+            else if ([operand1 isKindOfClass:[NSString class]]) // error in operand, should return it recursively up
+                return operand1;
+            operand1double = [(NSNumber*) operand1 doubleValue];
+        }
+        if ([binaryOperations containsObject:operation]) {
+            operand2 = [self popOperandOffStack:stack];
+            if (!operand2) // insufficient operands
+                return [@"" stringByAppendingFormat:@"Insufficient operands for %@ ", operation];
+            else if ([operand2 isKindOfClass:[NSString class]]) // error in operand, should return it recursively up
+                return operand2;
+            operand2double = [(NSNumber*) operand2 doubleValue];
+        }
+            
         if ([operation isEqualToString:@"+"])
-            result = [self popOperandOffStack:stack] + [self popOperandOffStack:stack];
+            result = operand2double + operand1double;
         else if ([operation isEqualToString:@"*"])
-            result = [self popOperandOffStack:stack] * [self popOperandOffStack:stack];
+            result = operand2double * operand1double;
         else if ([operation isEqualToString:@"-"]) {
-            result = -[self popOperandOffStack:stack] + [self popOperandOffStack:stack];
+            result = operand2double - operand1double;
         }
         else if ([operation isEqualToString:@"/"]) {
-            double divisor = [self popOperandOffStack:stack];
-            if (divisor) result = [self popOperandOffStack:stack] / divisor;
+            if (operand1double)
+                result = operand2double / operand1double;
+            else
+                return @"Division by zero";
         }
         else if ([operation isEqualToString:@"sin"])
         {
-            result = sin([self popOperandOffStack:stack]);
+            result = sin(operand1double);
         }
         else if ([operation isEqualToString:@"cos"])
         {
-            result = cos([self popOperandOffStack:stack]);
+            result = cos(operand1double);
         }
         else if ([operation isEqualToString:@"log"])
         {
-            result = log([self popOperandOffStack:stack]);
+            if (operand1double >= 0)
+                result = log(operand1double);
+            else
+                return @"log of negative";
         }
         else if ([operation isEqualToString:@"sqrt"])
         {
-            result = sqrt([self popOperandOffStack:stack]);
+            if (operand1double >= 0)
+                result = sqrt(operand1double);
+            else
+                return @"sqrt of negative";
         }
         else if ([operation isEqualToString:@"e"])
         {
@@ -99,12 +135,12 @@
         }
         else if ([operation isEqualToString:@"+/-"])
         {
-            result = -[self popOperandOffStack:stack];
+            result = -operand1double;
         }
         
     }
     
-    return result;
+    return [NSNumber numberWithDouble:result];
 }
 
 +(NSString*) popOperandDescriptionOffStack:(NSMutableArray *)stack
@@ -181,7 +217,7 @@
     [self.programStack removeAllObjects];
 }
 
-+(double) runProgram:(id)program
++(id) runProgram:(id)program
 {
     NSMutableArray* stack;
     if ([program isKindOfClass:[NSArray class]])
@@ -191,7 +227,7 @@
     return [self popOperandOffStack:stack];
 }
 
-+(double) runProgram:(id)program usingVariablesStore:(NSDictionary *)variablesStore
++(id) runProgram:(id)program usingVariablesStore:(NSDictionary *)variablesStore
 {
     NSMutableArray* stack;
     if ([program isKindOfClass:[NSArray class]])
@@ -249,7 +285,7 @@
     return desc;
 }
 
--(double) performOperation:(NSString*)operation
+-(id) performOperation:(NSString*)operation
 {
     [self.programStack addObject:operation];
     return [[self class] runProgram:self.program];

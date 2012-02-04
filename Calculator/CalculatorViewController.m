@@ -19,6 +19,7 @@
 -(void) updateProgramDisplay;
 -(void) updateVariablesDisplay;
 -(void) updateUsedVariablesDisplay;
+-(void) evaluateProgram;
 @end
 
 @implementation CalculatorViewController
@@ -125,6 +126,20 @@
     [self updateProgramDisplay];
 }
 
+-(void) evaluateProgram
+{
+    id result = [CalculatorModel runProgram:self.model.program usingVariablesStore:self.variablesStore];
+    //self.display.text = [NSString stringWithFormat:@"%g", result];
+    NSString* strResult = result;
+    if ([result isKindOfClass:[NSNumber class]]) {
+        double dblResult = [(NSNumber*) result doubleValue];
+        strResult = [NSString stringWithFormat:@"%g", dblResult];
+    }
+    self.display.text = strResult;
+    [self updateProgramDisplay];
+    self.programDescription.text = [self.programDescription.text stringByAppendingString:@"="];
+}
+
 - (IBAction)operationPressed:(UIButton*)sender {
     if ([sender.currentTitle isEqualToString:@"+/-"])
     {
@@ -135,11 +150,7 @@
     if (self.editingNumber) [self enterPressed];
     //double result = [self.model performOperation:[sender currentTitle]];
     [self.model pushOperator:sender.currentTitle];
-    double result = [CalculatorModel runProgram:self.model.program usingVariablesStore:self.variablesStore];
-    
-    self.display.text = [NSString stringWithFormat:@"%g", result];
-    [self updateProgramDisplay];
-    self.programDescription.text = [self.programDescription.text stringByAppendingString:@"="];
+    [self evaluateProgram];
 }
 
 - (IBAction)backspacePressed {
@@ -159,10 +170,7 @@
     } else {    // undo last action on program
         [self.model undoLastAction];
     }
-    double result = [CalculatorModel runProgram:self.model.program usingVariablesStore:self.variablesStore];
-    self.display.text = [NSString stringWithFormat:@"%g", result];
-    [self updateProgramDisplay];
-    self.programDescription.text = [self.programDescription.text stringByAppendingString:@"="];
+    [self evaluateProgram];
 }
 
 - (IBAction)storePressed {
@@ -185,11 +193,7 @@
         [self updateVariablesDisplay]; // to reflect the new variable
         
         // re-evaluate program because variables changed
-        double result = [CalculatorModel runProgram:self.model.program usingVariablesStore:self.variablesStore];
-        self.display.text = [NSString stringWithFormat:@"%g", result];
-        
-        [self updateProgramDisplay]; // to remove the = if any when storing
-        self.programDescription.text = [self.programDescription.text stringByAppendingString:@"="];
+        [self evaluateProgram];
     } else {
         // load variable into model program
         if (self.editingNumber) [self enterPressed];
