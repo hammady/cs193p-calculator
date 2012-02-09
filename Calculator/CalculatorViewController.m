@@ -8,6 +8,7 @@
 
 #import "CalculatorViewController.h"
 #import "CalculatorModel.h"
+#import "GraphViewController.h"
 
 @interface CalculatorViewController()
 @property (nonatomic) BOOL editingNumber;
@@ -228,6 +229,14 @@
     for(NSString* var in set)
         title = [title stringByAppendingFormat:@"%@ ", var];
     self.usedVariablesDisplay.text = title;
+}
+
+-(void) prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+{
+    if ([segue.identifier isEqualToString:@"graphSegue"]) {
+        GraphViewController* vc = segue.destinationViewController;
+        vc.program = self.model.program;
+    }
 }
 
 - (void)viewDidUnload {
