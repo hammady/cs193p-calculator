@@ -28,7 +28,9 @@
 -(void) setGraphView:(GraphView *)graphView
 {
     _graphView = graphView;
-    [graphView setDatasource:self];    
+    [graphView setDatasource:self];  
+    // we could have registered gesture recognizers here but it makes more sense to do so
+    // in the setup of the GraphView because gestures change the view not the model
 }
 
 -(void) setVariablesStore:(NSDictionary *)variablesStore

@@ -45,7 +45,20 @@
     CGFloat originY = self.bounds.origin.y + self.bounds.size.height / 2;
     self.origin = CGPointMake(originX, originY);
     //self.origin = CGPointZero;
+    // setting content mode so that the view redraws itself when device is rotated
     self.contentMode = UIViewContentModeRedraw;
+    
+    // registering gesture recognizers
+    // setting the target/selector sets the event handler
+    // adding the recognizer to the view makes the view recognize the gesture (turning it on)
+    UIPanGestureRecognizer *pangr = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(gesturePan:)];
+    [self addGestureRecognizer:pangr];
+    UIPinchGestureRecognizer *pinchgr = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(gesturePinch:)];
+    [self addGestureRecognizer:pinchgr];
+    UITapGestureRecognizer *tapgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(gestureTap:)];
+    tapgr.numberOfTapsRequired = 3;
+    tapgr.numberOfTouchesRequired = 1;
+    [self addGestureRecognizer:tapgr];
 }
 
 -(void) awakeFromNib
@@ -76,8 +89,9 @@
     double x, y;
     CGFloat screenX, screenY;
     CGContextBeginPath(context);
+    
     // iterate over pixels not points to make use of the retina display
-    CGFloat step = 1.0/self.contentScaleFactor;
+    CGFloat step = 1.0/(self.contentScaleFactor * self.scale);
     
     NSLog(@"drawing step = %f", step);
     for (x = minX; x <= maxX; x += step) {
@@ -108,4 +122,32 @@
     [desc drawInRect:descRect withFont:font];
 }
 
+// Gesture recognizer handlers
+
+-(void) gesturePan:(UIPanGestureRecognizer*) recognizer
+{
+    if (recognizer.state == UIGestureRecognizerStateChanged ||
+        recognizer.state == UIGestureRecognizerStateEnded) {
+        CGPoint t = [recognizer translationInView:self];
+        self.origin = CGPointMake(self.origin.x + t.x, self.origin.y + t.y);
+        [recognizer setTranslation:CGPointZero inView:self];
+    }
+}
+
+-(void) gesturePinch:(UIPinchGestureRecognizer*) recognizer
+{
+    if (recognizer.state == UIGestureRecognizerStateChanged ||
+        recognizer.state == UIGestureRecognizerStateEnded) {
+        self.scale *= recognizer.scale;
+        [recognizer setScale:1.0];
+    }
+}
+
+-(void) gestureTap:(UITapGestureRecognizer*) recognizer
+{
+    if (recognizer.state == UIGestureRecognizerStateEnded) {
+        NSLog(@"Triple tap recognized");
+        self.origin = [recognizer locationInView:self];
+    }
+}
 @end
