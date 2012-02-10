@@ -7,7 +7,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "GraphView.h"
 
-@interface GraphViewController : UIViewController
-@property (nonatomic, weak) id program;
+@interface GraphViewController : UIViewController <GraphDataSource>
+@property (weak, nonatomic) IBOutlet GraphView *graphView;
+// begin models (MODELS SHOULD BE ALWAYS STRONG
+@property (nonatomic, strong) id program;
+@property (nonatomic, strong) NSDictionary* variablesStore;
+// end models
 @end

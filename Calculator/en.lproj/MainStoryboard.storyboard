@@ -549,6 +549,9 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <navigationItem key="navigationItem" title="Graph" id="TKa-Kr-7rK"/>
+                    <connections>
+                        <outlet property="graphView" destination="IqW-wL-1Rr" id="GQW-Od-Scy"/>
+                    </connections>
                 </viewController>
             </objects>
             <point key="canvasLocation" x="246" y="794"/>
@@ -571,27 +574,6 @@
             <point key="canvasLocation" x="-1124" y="94"/>
         </scene>
     </scenes>
-    <classes>
-        <class className="CalculatorViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/CalculatorViewController.h"/>
-            <relationships>
-                <relationship kind="outlet" name="aVariableButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="bVariableButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="display" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="programDescription" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="storeButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="usedVariablesDisplay" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="variablesDisplay" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="xVariableButton" candidateClass="UIButton"/>
-            </relationships>
-        </class>
-        <class className="GraphView" superclassName="UIView">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/GraphView.h"/>
-        </class>
-        <class className="GraphViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/GraphViewController.h"/>
-        </class>
-    </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
         <simulatedOrientationMetrics key="orientation"/>

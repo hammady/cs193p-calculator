@@ -236,6 +236,7 @@
     if ([segue.identifier isEqualToString:@"graphSegue"]) {
         GraphViewController* vc = segue.destinationViewController;
         vc.program = self.model.program;
+        vc.variablesStore = self.variablesStore;
     }
 }
 

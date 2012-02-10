@@ -7,6 +7,7 @@
 //
 
 #import "GraphViewController.h"
+#import "CalculatorModel.h"
 
 @interface GraphViewController()
 
@@ -14,11 +15,25 @@
 
 @implementation GraphViewController
 
+@synthesize graphView = _graphView;
 @synthesize program = _program;
+@synthesize variablesStore = _variablesStore;
 
 -(void) setProgram:(id)program
 {
     _program = program;
+    [self.view setNeedsDisplay];
+}
+
+-(void) setGraphView:(GraphView *)graphView
+{
+    _graphView = graphView;
+    [graphView setDatasource:self];    
+}
+
+-(void) setVariablesStore:(NSDictionary *)variablesStore
+{
+    _variablesStore = variablesStore;
     [self.view setNeedsDisplay];
 }
 
@@ -58,6 +73,7 @@
 
 - (void)viewDidUnload
 {
+    [self setGraphView:nil];
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
@@ -67,6 +83,22 @@
 {
     // Return YES for supported orientations
     return (interfaceOrientation == UIInterfaceOrientationPortrait);
+}
+
+// GraphDataSource protocol methods
+-(double) getYForX:(double)x
+{
+    [self.variablesStore setValue:[NSNumber numberWithDouble:x] forKey:@"x"];
+    id result = [CalculatorModel runProgram:self.program usingVariablesStore:self.variablesStore];
+    if ([result isKindOfClass:[NSNumber class]])
+        return [result doubleValue];
+    else
+        return 0;
+}
+
+-(NSString*) getGraphDescription
+{
+    return [CalculatorModel getDescriptionOfProgramInfix:self.program];
 }
 
 @end
