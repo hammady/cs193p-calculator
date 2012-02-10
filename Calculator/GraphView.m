@@ -45,6 +45,7 @@
     CGFloat originY = self.bounds.origin.y + self.bounds.size.height / 2;
     self.origin = CGPointMake(originX, originY);
     //self.origin = CGPointZero;
+    self.contentMode = UIViewContentModeRedraw;
 }
 
 -(void) awakeFromNib
@@ -75,7 +76,11 @@
     double x, y;
     CGFloat screenX, screenY;
     CGContextBeginPath(context);
-    for (x = minX; x <= maxX; x++) {
+    // iterate over pixels not points to make use of the retina display
+    CGFloat step = 1.0/self.contentScaleFactor;
+    
+    NSLog(@"drawing step = %f", step);
+    for (x = minX; x <= maxX; x += step) {
         screenX = x * self.scale + self.origin.x;
         y = [self.datasource getYForX:x];
         screenY = -y * self.scale + self.origin.y;
