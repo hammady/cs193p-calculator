@@ -11,6 +11,8 @@
 @protocol GraphDataSource <NSObject>
 -(double) getYForX:(double)x;
 -(NSString*) getGraphDescription;
+-(void) saveGraphOrigin:(CGPoint)origin;
+-(void) saveGraphScale:(CGFloat)scale;
 @end
 
 @interface GraphView : UIView

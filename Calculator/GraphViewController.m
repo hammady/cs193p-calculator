@@ -10,7 +10,7 @@
 #import "CalculatorModel.h"
 
 @interface GraphViewController()
-
+@property (nonatomic, strong) NSUserDefaults* userDefaults;
 @end
 
 @implementation GraphViewController
@@ -18,9 +18,11 @@
 @synthesize graphView = _graphView;
 @synthesize program = _program;
 @synthesize variablesStore = _variablesStore;
+@synthesize userDefaults = _userDefaults;
 
 -(void) setProgram:(id)program
 {
+    if (program == _program) return;
     _program = program;
     [self.view setNeedsDisplay];
 }
@@ -31,12 +33,33 @@
     [graphView setDatasource:self];  
     // we could have registered gesture recognizers here but it makes more sense to do so
     // in the setup of the GraphView because gestures change the view not the model
+    
+    // load user defaults
+    graphView.origin = CGPointMake([self.userDefaults doubleForKey:@"origin.x"], 
+                                   [self.userDefaults doubleForKey:@"origin.y"]);
+    graphView.scale = [self.userDefaults doubleForKey:@"scale"];
 }
 
 -(void) setVariablesStore:(NSDictionary *)variablesStore
 {
     _variablesStore = variablesStore;
     [self.view setNeedsDisplay];
+}
+
+-(NSUserDefaults*) userDefaults
+{
+    if (!_userDefaults) {
+        // first time to access userDefaults
+        _userDefaults = [NSUserDefaults standardUserDefaults];
+        // register default values
+        NSDictionary* defaults = [NSDictionary dictionaryWithObjectsAndKeys:
+                                  [NSNumber numberWithDouble:self.view.bounds.origin.x + self.view.bounds.size.width / 2], @"origin.x",
+                                  [NSNumber numberWithDouble:self.view.bounds.origin.y + self.view.bounds.size.height / 2], @"origin.y",
+                                  [NSNumber numberWithDouble:1], @"scale",
+                                  nil];
+        [_userDefaults registerDefaults:defaults];
+    }
+    return _userDefaults;
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -101,6 +124,21 @@
 -(NSString*) getGraphDescription
 {
     return [CalculatorModel getDescriptionOfProgramInfix:self.program];
+}
+
+-(void) saveGraphOrigin:(CGPoint)origin
+{
+    // save user defaults    
+    [self.userDefaults setDouble:origin.x forKey:@"origin.x"];
+    [self.userDefaults setDouble:origin.y forKey:@"origin.y"];
+    [self.userDefaults synchronize];
+}
+
+-(void) saveGraphScale:(CGFloat)scale
+{
+    // save user defaults    
+    [self.userDefaults setDouble:scale forKey:@"scale"];
+    [self.userDefaults synchronize];    
 }
 
 @end

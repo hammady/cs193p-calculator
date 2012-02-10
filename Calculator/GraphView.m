@@ -21,18 +21,27 @@
 
 -(void) setScale:(CGFloat)scale
 {
+    if (!scale) scale = 1.0;
+    if (scale == _scale) return;
+    
     _scale = scale;
     [self setNeedsDisplay];
+    [self.datasource saveGraphScale:scale];
 }
 
 -(void) setOrigin:(CGPoint)origin
 {
+    if (origin.x == _origin.x && origin.y == _origin.y) return;
+    
     _origin = origin;
     [self setNeedsDisplay];
+    [self.datasource saveGraphOrigin:origin];
 }
 
 -(void) setDatasource:(id<GraphDataSource>)datasource
 {
+    if (datasource == _datasource) return;
+    
     _datasource = datasource;
     [self setNeedsDisplay];
 }
@@ -40,11 +49,11 @@
 -(void) setup
 {
     NSLog(@"In GraphView setup");
-    self.scale = 1;
-    CGFloat originX = self.bounds.origin.x + self.bounds.size.width / 2;
-    CGFloat originY = self.bounds.origin.y + self.bounds.size.height / 2;
-    self.origin = CGPointMake(originX, originY);
-    //self.origin = CGPointZero;
+    
+    //CGFloat originX = self.bounds.origin.x + self.bounds.size.width / 2;
+    //CGFloat originY = self.bounds.origin.y + self.bounds.size.height / 2;
+    //self.origin = CGPointMake(originX, originY);
+
     // setting content mode so that the view redraws itself when device is rotated
     self.contentMode = UIViewContentModeRedraw;
     
