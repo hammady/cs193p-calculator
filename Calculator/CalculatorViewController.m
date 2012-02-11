@@ -192,9 +192,6 @@
         self.typedPoint = NO;
         self.display.text = @"0";
         [self updateVariablesDisplay]; // to reflect the new variable
-        
-        // re-evaluate program because variables changed
-        [self evaluateProgram];
     } else {
         // load variable into model program
         if (self.editingNumber) [self enterPressed];
@@ -204,6 +201,9 @@
         
         [self updateUsedVariablesDisplay];
     }
+    
+    // re-evaluate program because either variable values changed or they are pushed on stack
+    [self evaluateProgram];
 }
 
 - (void) updateProgramDisplay
@@ -231,12 +231,41 @@
     self.usedVariablesDisplay.text = title;
 }
 
+-(BOOL) shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
+{
+    return toInterfaceOrientation == UIInterfaceOrientationPortrait 
+    || toInterfaceOrientation == UIInterfaceOrientationPortraitUpsideDown;
+}
+
 -(void) prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
     if ([segue.identifier isEqualToString:@"graphSegue"]) {
         GraphViewController* vc = segue.destinationViewController;
         vc.program = self.model.program;
         vc.variablesStore = self.variablesStore;
+    }
+}
+
+-(GraphViewController*) splitViewDetail
+{
+    // if iPad then will return the GraphViewController (detail vc), otherwise returns nil
+    
+    GraphViewController* gvc = [self.splitViewController.viewControllers lastObject];
+    
+    if (![gvc isKindOfClass:[GraphViewController class]])
+        gvc = nil;
+    return gvc;
+}
+
+- (IBAction)graphPressed {
+    if ([self splitViewDetail]) {
+        // iPad
+        [self splitViewDetail].program = self.model.program;
+        [self splitViewDetail].variablesStore = self.variablesStore;
+    }
+    else {
+        // iPhone
+        [self performSegueWithIdentifier:@"graphSegue" sender:self];
     }
 }
 

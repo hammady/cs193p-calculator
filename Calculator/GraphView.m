@@ -50,10 +50,6 @@
 {
     NSLog(@"In GraphView setup");
     
-    //CGFloat originX = self.bounds.origin.x + self.bounds.size.width / 2;
-    //CGFloat originY = self.bounds.origin.y + self.bounds.size.height / 2;
-    //self.origin = CGPointMake(originX, originY);
-
     // setting content mode so that the view redraws itself when device is rotated
     self.contentMode = UIViewContentModeRedraw;
     
