@@ -9,6 +9,10 @@
 #import "GraphViewController.h"
 #import "CalculatorModel.h"
 
+@interface GraphViewController()
+//@property (nonatomic, strong) NSMutableDictionary* yCache;
+@end
+
 @implementation GraphViewController
 @synthesize toolbar = _toolbar;
 @synthesize graphView = _graphView;
@@ -16,11 +20,14 @@
 @synthesize variablesStore = _variablesStore;
 @synthesize showMasterBarButtonItem = _showMasterBarButtonItem;
 
+//@synthesize yCache = _yCache;
+
 -(void) setProgram:(id)program
 {
     if (program == _program) return;
     _program = program;
-    [self.graphView setNeedsDisplay]; 
+    [self.graphView setNeedsDisplay];
+//    self.yCache = nil;    // invalidate yCache
 }
 
 -(void) setGraphView:(GraphView *)graphView
@@ -28,13 +35,16 @@
     _graphView = graphView;
     [graphView setDatasource:self];  
     // we could have registered gesture recognizers here but it makes more sense to do so
-    // in the setup of the GraphView because gestures change the view not the model    
+    // in the setup of the GraphView because gestures change the view not the model
+//    self.yCache = nil;    // invalidate yCache
 }
 
 -(void) setVariablesStore:(NSDictionary *)variablesStore
 {
+    if (variablesStore == _variablesStore) return;
     _variablesStore = variablesStore;
     [self.graphView setNeedsDisplay];
+//    self.yCache = nil;    // invalidate yCache
 }
 
 -(void) setShowMasterBarButtonItem:(UIBarButtonItem *)showMasterBarButtonItem
@@ -50,6 +60,13 @@
     // store this button in the property storage so that we may refer to it later
     _showMasterBarButtonItem = showMasterBarButtonItem;
 }
+
+/*-(NSMutableDictionary*) yCache
+{
+    if (!_yCache) _yCache = [[NSMutableDictionary alloc] initWithCapacity:100000];
+    // we have at least 320 horizontal x points so the first plot caches 320 points
+    return _yCache;
+}*/
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -101,9 +118,12 @@
 
 - (void)viewDidUnload
 {
+    [NSUserDefaults.standardUserDefaults synchronize];
+
     [self setGraphView:nil];
     [self setToolbar:nil];
     [super viewDidUnload];
+        
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
 }
@@ -117,8 +137,28 @@
 // GraphDataSource protocol methods
 -(double) getYForX:(double)x
 {
-    [self.variablesStore setValue:[NSNumber numberWithDouble:x] forKey:@"x"];
-    id result = [CalculatorModel runProgram:self.program usingVariablesStore:self.variablesStore];
+    // performance optimization: cache y values because time profiling shows that runProgram is a bottleneck
+    // it turns out that the saving of computation is replaced by hashtable get/set which are more costly!
+    // this approach needs a search tree implementation which is agnostic to table size change
+    
+    /*static int hits = 0;
+    static int misses = 0;*/
+    
+    NSNumber* xNumber = [NSNumber numberWithDouble:x];
+    id result;
+    
+    /*result = [self.yCache objectForKey:xNumber];
+    if (result) {
+        // cache hit
+        hits++;
+    } else {
+        // cache miss
+        misses++;*/
+        [self.variablesStore setValue:xNumber forKey:@"x"];
+        result = [CalculatorModel runProgram:self.program usingVariablesStore:self.variablesStore];
+        /*[self.yCache setObject:result forKey:xNumber];
+    }*/
+    
     if ([result isKindOfClass:[NSNumber class]])
         return [result doubleValue];
     else
@@ -135,14 +175,12 @@
     // save user defaults    
     [NSUserDefaults.standardUserDefaults setDouble:origin.x forKey:@"origin.x"];
     [NSUserDefaults.standardUserDefaults setDouble:origin.y forKey:@"origin.y"];
-    [NSUserDefaults.standardUserDefaults synchronize];
 }
 
 -(void) saveGraphScale:(CGFloat)scale
 {
     // save user defaults    
     [NSUserDefaults.standardUserDefaults setDouble:scale forKey:@"scale"];
-    [NSUserDefaults.standardUserDefaults synchronize];    
 }
 
 // SplitViewControllerDelegate methods
@@ -170,7 +208,4 @@
 {
     self.showMasterBarButtonItem = nil;
 }
-
-
-
 @end

@@ -10,7 +10,7 @@
 #import "AxesDrawer.h"
 
 @interface GraphView()
-
+@property (nonatomic) BOOL duringGesture;
 @end
 
 @implementation GraphView
@@ -19,10 +19,13 @@
 @synthesize origin = _origin;
 @synthesize datasource = _datasource;
 
+@synthesize duringGesture = _duringGesture;
+
 -(void) setScale:(CGFloat)scale
 {
     if (!scale) scale = 1.0;
-    if (scale == _scale) return;
+    //if (scale == _scale) return;
+    // commented this check because we need to redraw when a gesture ends which typically ends with scale change of 0
     
     _scale = scale;
     [self setNeedsDisplay];
@@ -31,7 +34,8 @@
 
 -(void) setOrigin:(CGPoint)origin
 {
-    if (origin.x == _origin.x && origin.y == _origin.y) return;
+    //if (origin.x == _origin.x && origin.y == _origin.y) return;
+    // commented this check because we need to redraw when a gesture ends which typically ends with translation of 0
     
     _origin = origin;
     [self setNeedsDisplay];
@@ -98,6 +102,12 @@
     // iterate over pixels not points to make use of the retina display
     CGFloat step = 1.0/(self.contentScaleFactor * self.scale);
     
+#define COARSE_STEP_FACTOR 10
+    
+    // performance point
+    // do not draw all points while during gesture, only when gesture is done
+    if (self.duringGesture) step *= COARSE_STEP_FACTOR;
+    
     NSLog(@"drawing step = %f", step);
     for (x = minX; x <= maxX; x += step) {
         screenX = x * self.scale + self.origin.x;
@@ -131,6 +141,13 @@
 
 -(void) gesturePan:(UIPanGestureRecognizer*) recognizer
 {
+    if (recognizer.state == UIGestureRecognizerStateChanged)
+        self.duringGesture = YES;
+    else if (recognizer.state == UIGestureRecognizerStateEnded ||
+             recognizer.state == UIGestureRecognizerStateCancelled ||
+             recognizer.state == UIGestureRecognizerStateFailed)
+        self.duringGesture = NO;
+
     if (recognizer.state == UIGestureRecognizerStateChanged ||
         recognizer.state == UIGestureRecognizerStateEnded) {
         CGPoint t = [recognizer translationInView:self];
@@ -141,6 +158,13 @@
 
 -(void) gesturePinch:(UIPinchGestureRecognizer*) recognizer
 {
+    if (recognizer.state == UIGestureRecognizerStateChanged)
+        self.duringGesture = YES;
+    else if (recognizer.state == UIGestureRecognizerStateEnded ||
+             recognizer.state == UIGestureRecognizerStateCancelled ||
+             recognizer.state == UIGestureRecognizerStateFailed)
+        self.duringGesture = NO;
+
     if (recognizer.state == UIGestureRecognizerStateChanged ||
         recognizer.state == UIGestureRecognizerStateEnded) {
         self.scale *= recognizer.scale;
