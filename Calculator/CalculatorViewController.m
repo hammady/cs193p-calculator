@@ -264,6 +264,7 @@
         // iPad
         [self splitViewDetail].program = self.model.program;
         [self splitViewDetail].variablesStore = self.variablesStore;
+        [self splitViewDetail].delegate = self;
     }
     else {
         // iPhone
