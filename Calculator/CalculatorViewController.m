@@ -10,7 +10,8 @@
 #import "CalculatorModel.h"
 #import "GraphViewController.h"
 
-@interface CalculatorViewController()
+@interface CalculatorViewController() <GraphViewControllerDelegate>
+
 @property (nonatomic) BOOL editingNumber;
 @property (nonatomic) BOOL typedPoint;
 @property (nonatomic, strong) CalculatorModel* model;
@@ -243,6 +244,7 @@
         GraphViewController* vc = segue.destinationViewController;
         vc.program = self.model.program;
         vc.variablesStore = self.variablesStore;
+        vc.delegate = self;
     }
 }
 
@@ -280,4 +282,14 @@
     [self setUsedVariablesDisplay:nil];
     [super viewDidUnload];
 }
+
+#pragma mark GraphViewControllerDelegate methods
+
+-(void) programChanged:(id)program sender:(GraphViewController *)sender
+{
+    self.model.program = program;
+    [self evaluateProgram];
+    [self updateUsedVariablesDisplay];
+}
+
 @end

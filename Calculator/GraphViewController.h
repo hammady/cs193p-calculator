@@ -10,6 +10,14 @@
 #import "GraphView.h"
 #import "BarButtonItemPresenter.h"
 
+@class GraphViewController;
+
+@protocol GraphViewControllerDelegate <NSObject>
+
+-(void) programChanged:(id)program sender:(GraphViewController*)sender;
+
+@end
+
 @interface GraphViewController : UIViewController <GraphDataSource, UISplitViewControllerDelegate, BarButtonItemPresenter>
 @property (weak, nonatomic) IBOutlet UIToolbar *toolbar;
 @property (weak, nonatomic) IBOutlet GraphView *graphView;
@@ -18,4 +26,6 @@
 @property (nonatomic, strong) id program;
 @property (nonatomic, strong) NSDictionary* variablesStore;
 // end models
+@property (nonatomic, weak) id <GraphViewControllerDelegate> delegate;
+
 @end

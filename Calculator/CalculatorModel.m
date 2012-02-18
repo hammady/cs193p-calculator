@@ -212,6 +212,20 @@
     return [self.programStack copy];
 }
 
+-(void) setProgram:(id)program
+{
+    // validate program then replace programStack
+    if ([program isKindOfClass:[NSArray class]]) {
+        NSArray* programArray = (NSArray*) program;
+        for (id item in programArray) {
+            if (![item isKindOfClass:[NSString class]] &&
+                ![item isKindOfClass:[NSNumber class]])
+                return;
+        }
+        self.programStack = [programArray mutableCopy];
+    }
+}
+
 -(void) clear
 {
     [self.programStack removeAllObjects];

@@ -15,6 +15,14 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.
+    // register default values
+    NSDictionary* defaults = [NSDictionary dictionaryWithObjectsAndKeys:
+                              [NSNumber numberWithDouble:100], @"origin.x",
+                              [NSNumber numberWithDouble:100], @"origin.y",
+                              [NSNumber numberWithDouble:1], @"scale",
+                              nil];
+    [NSUserDefaults.standardUserDefaults registerDefaults:defaults];
+    
     return YES;
 }
 							

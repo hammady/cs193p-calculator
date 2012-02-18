@@ -17,7 +17,7 @@
 -(void) pushOperator:(NSString*)operation;
 -(void) undoLastAction;
 
-@property (readonly) id program;
+@property (nonatomic, weak) id program;
 
 +(id) runProgram:(id)program;
 +(NSString*) getDescriptionOfProgram:(id)program;

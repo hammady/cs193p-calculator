@@ -8,8 +8,10 @@
 
 #import "GraphViewController.h"
 #import "CalculatorModel.h"
+#import "FavoritesTableViewController.h"
 
-@interface GraphViewController()
+@interface GraphViewController() <FavoritesTableViewControllerDelegate>
+
 //@property (nonatomic, strong) NSMutableDictionary* yCache;
 @end
 
@@ -19,8 +21,11 @@
 @synthesize program = _program;
 @synthesize variablesStore = _variablesStore;
 @synthesize showMasterBarButtonItem = _showMasterBarButtonItem;
+@synthesize delegate = _delegate;
 
 //@synthesize yCache = _yCache;
+
+#pragma mark setters/getters
 
 -(void) setProgram:(id)program
 {
@@ -68,15 +73,6 @@
     return _yCache;
 }*/
 
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
-{
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-    if (self) {
-        // Custom initialization
-    }
-    return self;
-}
-
 - (void)didReceiveMemoryWarning
 {
     // Releases the view if it doesn't have a superview.
@@ -100,14 +96,6 @@
 {
     [super viewDidLoad];
 
-    // register default values
-    NSDictionary* defaults = [NSDictionary dictionaryWithObjectsAndKeys:
-                              [NSNumber numberWithDouble:self.view.bounds.origin.x + self.view.bounds.size.width / 2], @"origin.x",
-                              [NSNumber numberWithDouble:self.view.bounds.origin.y + self.view.bounds.size.height / 2], @"origin.y",
-                              [NSNumber numberWithDouble:1], @"scale",
-                              nil];
-    [NSUserDefaults.standardUserDefaults registerDefaults:defaults];
-    
     // load user defaults
     self.graphView.origin = CGPointMake([NSUserDefaults.standardUserDefaults doubleForKey:@"origin.x"], 
                                    [NSUserDefaults.standardUserDefaults doubleForKey:@"origin.y"]);
@@ -116,10 +104,9 @@
     self.splitViewController.delegate = self;
 }
 
+
 - (void)viewDidUnload
 {
-    [NSUserDefaults.standardUserDefaults synchronize];
-
     [self setGraphView:nil];
     [self setToolbar:nil];
     [super viewDidUnload];
@@ -128,13 +115,18 @@
     // e.g. self.myOutlet = nil;
 }
 
+-(void) viewWillDisappear:(BOOL)animated
+{
+    [NSUserDefaults.standardUserDefaults synchronize];
+}
+
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
     // Return YES for supported orientations
     return YES;
 }
 
-// GraphDataSource protocol methods
+#pragma mark GraphDataSource protocol methods
 -(double) getYForX:(double)x
 {
     // performance optimization: cache y values because time profiling shows that runProgram is a bottleneck
@@ -183,7 +175,7 @@
     [NSUserDefaults.standardUserDefaults setDouble:scale forKey:@"scale"];
 }
 
-// SplitViewControllerDelegate methods
+#pragma mark SplitViewControllerDelegate methods
 
 -(BOOL) splitViewController:(UISplitViewController *)svc 
    shouldHideViewController:(UIViewController *)vc 
@@ -208,4 +200,40 @@
 {
     self.showMasterBarButtonItem = nil;
 }
+
+#pragma mark actions
+
+#define FAVORITES_KEY @"Favorites"
+
+- (IBAction)addToFavoritesPressed
+{
+    NSMutableArray* favs = [[NSUserDefaults.standardUserDefaults 
+                     objectForKey:FAVORITES_KEY] mutableCopy];
+    if (!favs) favs = [NSMutableArray array];
+    [favs addObject:self.program];
+    [[NSUserDefaults standardUserDefaults] setObject:[favs copy] forKey:FAVORITES_KEY];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+#pragma mark segues
+
+-(void) prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+{
+    if ([segue.identifier isEqualToString:@"Show Favorites"]) {
+        [segue.destinationViewController setPrograms: 
+         [NSUserDefaults.standardUserDefaults objectForKey:FAVORITES_KEY]];
+        [segue.destinationViewController setDelegate:self];
+    }
+}
+
+#pragma mark id <FavoritesTableViewControllerDelegate> methods
+
+-(void) favoriteSelected:(id)program sender:(FavoritesTableViewController *)sender
+{
+    self.program = program;
+    [self.navigationController popViewControllerAnimated:YES];
+    [self.delegate programChanged:program sender:self];
+}
+
+
 @end
