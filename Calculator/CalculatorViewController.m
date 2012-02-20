@@ -235,7 +235,8 @@
 -(BOOL) shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
 {
     return toInterfaceOrientation == UIInterfaceOrientationPortrait 
-    || toInterfaceOrientation == UIInterfaceOrientationPortraitUpsideDown;
+    || toInterfaceOrientation == UIInterfaceOrientationPortraitUpsideDown
+    || [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad ;
 }
 
 -(void) prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
@@ -260,17 +261,19 @@
 }
 
 - (IBAction)graphPressed {
+    if (self.editingNumber) [self enterPressed];
     if ([self splitViewDetail]) {
         // iPad
         [self splitViewDetail].program = self.model.program;
         [self splitViewDetail].variablesStore = self.variablesStore;
-        [self splitViewDetail].delegate = self;
     }
     else {
         // iPhone
         [self performSegueWithIdentifier:@"graphSegue" sender:self];
     }
 }
+
+#pragma mark UIViewController life-cycle methods
 
 - (void)viewDidUnload {
     [self setProgramDescription:nil];
@@ -282,6 +285,11 @@
     [self setBVariableButton:nil];
     [self setUsedVariablesDisplay:nil];
     [super viewDidUnload];
+}
+
+-(void) viewDidLoad
+{
+    [self splitViewDetail].delegate = self;
 }
 
 #pragma mark GraphViewControllerDelegate methods

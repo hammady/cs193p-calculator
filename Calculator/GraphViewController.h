@@ -24,7 +24,7 @@
 
 // begin models (MODELS SHOULD BE ALWAYS STRONG
 @property (nonatomic, strong) id program;
-@property (nonatomic, strong) NSDictionary* variablesStore;
+@property (nonatomic, strong) NSMutableDictionary* variablesStore;
 // end models
 @property (nonatomic, weak) id <GraphViewControllerDelegate> delegate;
 

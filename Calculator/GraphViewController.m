@@ -44,7 +44,13 @@
 //    self.yCache = nil;    // invalidate yCache
 }
 
--(void) setVariablesStore:(NSDictionary *)variablesStore
+-(NSMutableDictionary*) variablesStore
+{
+    if (!_variablesStore) _variablesStore = [[NSMutableDictionary alloc] init];
+    return _variablesStore;
+}
+
+-(void) setVariablesStore:(NSMutableDictionary *)variablesStore
 {
     if (variablesStore == _variablesStore) return;
     _variablesStore = variablesStore;
